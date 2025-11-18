@@ -1,4 +1,4 @@
-# 1. Imports - Load all packages we need
+# 1. Imports - Load all packages 
 import os
 import time
 import numpy as np
@@ -20,7 +20,7 @@ spark = SparkSession.builder \
 print("Spark started:", spark.sparkContext.master)
 
 # 4. Find image files with Spark
-data_path = "/home/sat3812/CNNProject/Dataset"  # Change to your dataset folder
+data_path = "/home/sat3812/CNNProject/Dataset" 
 df = spark.read.format("binaryFile") \
     .option("recursiveFileLookup", "true") \
     .load(data_path)
@@ -29,7 +29,6 @@ def extract_paths(df):
     paths = []
     for row in df.select("path").collect():
         p = row.path
-        # Remove "file:" from start of path if present
         if p.startswith("file:"):
             p = p.replace("file:", "", 1)
         paths.append(p)
@@ -65,7 +64,7 @@ def get_label(path):
 def load_pair(path):
     img = load_image(path)
     label = tf.py_function(get_label, [path], tf.int32)
-    label.set_shape([])  # Make sure label is just a single number
+    label.set_shape([]) 
     return img, label
 
 train_ds = tf.data.Dataset.from_tensor_slices(train_files) \
@@ -118,17 +117,8 @@ with open(os.path.join(OUTPUT_DIR, "model_summary.txt"), "w") as f:
 print("\n==== TRAINING STARTED ====")
 train_start = time.time()
 
-early_stop = tf.keras.callbacks.EarlyStopping(
-    monitor="val_loss",
-    patience=4,
-    restore_best_weights=True
-)
-history = model.fit(
-    train_ds,
-    validation_data=val_ds,
-    epochs=20,
-    callbacks=[early_stop]
-)
+early_stop = tf.keras.callbacks.EarlyStopping(monitor="val_loss",patience=4,restore_best_weights=True)
+history = model.fit(train_ds,validation_data=val_ds,epochs=20,callbacks=[early_stop])
 train_end = time.time()
 training_time = train_end - train_start
 print(f"\nTotal Training Time: {training_time:.2f} seconds")
